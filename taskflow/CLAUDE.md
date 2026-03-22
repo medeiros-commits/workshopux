@@ -29,7 +29,7 @@ This is a Next.js 14+ SaaS MVP boilerplate with authentication, payments, and a 
 - `lib/stripe.ts` — Checkout sessions, customer portal
 - `lib/validations.ts` — Zod schemas for all inputs
 - `prisma/schema.prisma` — Database schema
-- `middleware.ts` — Route protection
+- `proxy.ts` — Route protection (Next.js 16 convention, replaces middleware.ts)
 
 ## Plan System
 
