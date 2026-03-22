@@ -1,7 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,22 +16,24 @@ import { getPlanDisplayName } from "@/lib/subscription";
 
 export default function BillingPage() {
   const { data: session } = useSession();
-  const router = useRouter();
+
+  const trialDaysLeft = useMemo(() => {
+    const trialEndsAt = session?.user?.trialEndsAt;
+    if (!trialEndsAt) return 0;
+    const now = new Date();
+    return Math.max(
+      0,
+      Math.ceil(
+        (new Date(trialEndsAt).getTime() - now.getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    );
+  }, [session?.user?.trialEndsAt]);
 
   if (!session?.user) return null;
 
   const user = session.user;
   const plan = user.plan;
-
-  const trialDaysLeft = user.trialEndsAt
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(user.trialEndsAt).getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : 0;
 
   const renewalDate = user.stripeCurrentPeriodEnd
     ? new Date(user.stripeCurrentPeriodEnd).toLocaleDateString("pt-BR")
