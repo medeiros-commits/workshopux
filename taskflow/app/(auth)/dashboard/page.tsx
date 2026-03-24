@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 import {
   Plus,
   Loader2,
@@ -37,7 +37,9 @@ import {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [newListName, setNewListName] = useState("");
-  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedListId = searchParams.get("list");
 
   const { data: lists, isLoading } = useTodoLists();
   const createList = useCreateTodoList();
@@ -118,7 +120,7 @@ export default function DashboardPage() {
                 {lists.map((list) => (
                   <DropdownMenuItem
                     key={list.id}
-                    onClick={() => setSelectedListId(list.id)}
+                    onClick={() => router.push(`/dashboard?list=${list.id}`)}
                     className={
                       list.id === activeList.id ? "font-semibold" : ""
                     }
