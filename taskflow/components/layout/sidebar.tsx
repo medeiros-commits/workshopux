@@ -2,15 +2,26 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   Columns3,
   CreditCard,
   AtSign,
   LogOut,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTodoLists } from "@/hooks/use-todo-lists";
 
 const NAV_ITEMS = [
   {
@@ -37,23 +48,68 @@ const BOTTOM_ITEMS = [
 export function Sidebar() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: lists } = useTodoLists();
+
+  const selectedListId = searchParams.get("list");
+  const activeList =
+    lists?.find((l) => l.id === selectedListId) || lists?.[0] || null;
+
+  function handleSelectList(listId: string) {
+    router.push(`/dashboard?list=${listId}`);
+  }
 
   return (
     <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-[#E5E9EB] bg-[#F6F8F9]">
       {/* Project header */}
-      <div className="flex items-center gap-2 px-4 pt-4 pb-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#0E73F6] text-white">
-          <AtSign className="h-5 w-5" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-semibold leading-6 tracking-[-0.084px] text-[#252C32]">
-            Task Manager
-          </span>
-          <span className="text-xs leading-4 text-[#84919A]">
-            Classic software project
-          </span>
-        </div>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex w-full items-center gap-2 px-4 pt-4 pb-4 text-left hover:bg-[#E5E9EB]/50 transition-colors rounded-md mx-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#0E73F6] text-white">
+              <AtSign className="h-5 w-5" />
+            </div>
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <span className="truncate text-sm font-semibold leading-6 tracking-[-0.084px] text-[#252C32]">
+                {activeList?.name || "Task Manager"}
+              </span>
+              <span className="text-xs leading-4 text-[#84919A]">
+                {lists?.length
+                  ? `${lists.length} board${lists.length !== 1 ? "s" : ""}`
+                  : "Nenhum board"}
+              </span>
+            </div>
+            <ChevronDown className="h-4 w-4 shrink-0 text-[#84919A]" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[220px]">
+          <DropdownMenuLabel>Seus boards</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {lists && lists.length > 0 ? (
+            lists.map((list) => (
+              <DropdownMenuItem
+                key={list.id}
+                onClick={() => handleSelectList(list.id)}
+                className="flex items-center justify-between"
+              >
+                <span className="truncate">{list.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#9AA6AC]">
+                    {list.items.length}
+                  </span>
+                  {list.id === activeList?.id && (
+                    <Check className="h-4 w-4 text-[#0E73F6]" />
+                  )}
+                </div>
+              </DropdownMenuItem>
+            ))
+          ) : (
+            <DropdownMenuItem disabled>
+              Crie um board para começar
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col gap-0 px-4">
